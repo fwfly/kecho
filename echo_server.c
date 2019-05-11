@@ -2,6 +2,7 @@
 #include <linux/kthread.h>
 #include <linux/sched/signal.h>
 #include <linux/tcp.h>
+#include <linux/string.h>
 
 #include "fastecho.h"
 
@@ -67,6 +68,9 @@ static int echo_server_worker(void *arg)
     allow_signal(SIGTERM);
 
     buf = kmalloc(BUF_SIZE, GFP_KERNEL);
+    /* Initial buf */
+    memset(buf, 0, (BUF_SIZE - 1) * sizeof(unsigned char));
+
     if (!buf) {
         printk(KERN_ERR MODULE_NAME ": kmalloc error....\n");
         return -1;
