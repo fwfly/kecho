@@ -78,6 +78,9 @@ static int open_listen(struct socket **result)
     error = kernel_setsockopt(sock, SOL_TCP, TCP_NODELAY, (char *) &opt,
                               sizeof(opt));
 
+    error = kernel_setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *) &opt,
+                              sizeof(opt));
+
     if (error < 0) {
         printk(KERN_ERR MODULE_NAME
                ": setsockopt tcp_nodelay setting error = %d\n",
