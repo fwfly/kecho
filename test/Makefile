@@ -1,4 +1,4 @@
-PROGS = echoclient
-CFLAGS = -Wall -O2 -g
+CFLAGS = -Wall -O2 -g -pthread
 
-echoclient: echoclient.o
+echoclient:
+	gcc $(CFLAGS) -o echoclient echoclient.c

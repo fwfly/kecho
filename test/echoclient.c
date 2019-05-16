@@ -1,16 +1,28 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netdb.h>
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <pthread.h>
 
-int main(int argc, char **argv)
+struct thread_info {
+    pthread_t thread_id;
+    int thread_num;
+    char *argv_string;
+};
+
+static void *request_worker(void *argv)
 {
+    struct thread_info *info = argv;
     int clientfd;
     struct addrinfo hints, *listp, *p;
+    char *msg;
     char buf[4096];
+
+    msg = info->argv_string;
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_socktype = SOCK_STREAM;
@@ -30,12 +42,10 @@ int main(int argc, char **argv)
         if (close(clientfd) < 0) {
             fprintf(stderr, "open_clientfd: close failed: %s\n",
                     strerror(errno));
-            return -1;
+            return;
         }
     }
     freeaddrinfo(listp);
-
-    char *msg = argv[1];
 
     printf("%d\n", strlen(msg));
     printf("%s\n", msg);
@@ -49,5 +59,31 @@ int main(int argc, char **argv)
 
     // clost connection
     close(clientfd);
+}
+
+int main(int argc, char **argv)
+{
+    char *msg = argv[1];
+    int num_threads = 9;
+    struct thread_info *tinfo;
+    pthread_attr_t attr;
+    void *res;
+
+    pthread_attr_init(&attr);
+    tinfo = calloc(num_threads, sizeof(struct thread_info));
+    for (int num = 0; num < num_threads; num++) {
+        tinfo[num].thread_num = num + 1;
+        tinfo[num].argv_string = msg;
+        pthread_create(&tinfo[num].thread_id, &attr, &request_worker,
+                       &tinfo[num]);
+    }
+
+    pthread_attr_destroy(&attr);
+
+    for (int num = 0; num < num_threads; num++) {
+        pthread_join(tinfo[num].thread_id, &res);
+        free(res);
+    }
+    free(tinfo);
     return 0;
 }
