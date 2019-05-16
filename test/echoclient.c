@@ -63,8 +63,8 @@ static void *request_worker(void *argv)
 
 int main(int argc, char **argv)
 {
-    char *msg = argv[1];
-    int num_threads = 9;
+    char *cnum_threads = argv[1], *msg = argv[2];
+    int num_threads = atoi(cnum_threads);
     struct thread_info *tinfo;
     pthread_attr_t attr;
     void *res;
